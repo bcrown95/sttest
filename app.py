@@ -2,7 +2,7 @@ from openai import OpenAI
 import streamlit as st
 
 # --- 비밀번호 확인 함수 ---
-def check_password(12345678):
+def check_password():
     """비밀번호가 맞으면 True를, 틀리면 False를 반환합니다."""
     if "password_correct" not in st.session_state:
         # 세션 상태에 비밀번호 정확성 여부가 없으면 초기화
