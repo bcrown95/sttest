@@ -2,7 +2,7 @@ from openai import OpenAI
 import streamlit as st
 
 # --- 비밀번호 확인 함수 ---
-def check_password(hannjini):
+def check_password(12345678):
     """비밀번호가 맞으면 True를, 틀리면 False를 반환합니다."""
     if "password_correct" not in st.session_state:
         # 세션 상태에 비밀번호 정확성 여부가 없으면 초기화
@@ -31,7 +31,7 @@ def check_password(hannjini):
 # --- 메인 챗봇 로직 ---
 
 # 비밀번호 확인 함수를 먼저 호출합니다.
-if check_password(hannjini):
+if check_password(12345678):
     st.title("닷컴달콤 연수 챗봇")
 
     client = OpenAI() # OpenAI API 키는 st.secrets["OPENAI_API_KEY"] 등으로 설정하는 것이 좋습니다.
