@@ -31,7 +31,7 @@ def check_password(hannjini):
 # --- 메인 챗봇 로직 ---
 
 # 비밀번호 확인 함수를 먼저 호출합니다.
-if check_password():
+if check_password(hannjini):
     st.title("닷컴달콤 연수 챗봇")
 
     client = OpenAI() # OpenAI API 키는 st.secrets["OPENAI_API_KEY"] 등으로 설정하는 것이 좋습니다.
