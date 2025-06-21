@@ -1,37 +1,52 @@
-import streamlit as st
 from openai import OpenAI
+import streamlit as st
 
-# 비밀번호 설정
-PASSWORD = "지니하니"
+# --- 비밀번호 확인 함수 ---
+def check_password():
+    """비밀번호가 맞으면 True를, 틀리면 False를 반환합니다."""
+    if "password_correct" not in st.session_state:
+        # 세션 상태에 비밀번호 정확성 여부가 없으면 초기화
+        st.session_state["password_correct"] = False
 
-# 세션 상태 초기화
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "openai_model" not in st.session_state:
-    st.session_state["openai_model"] = "gpt-4o"
+    # st.secrets를 통해 저장된 비밀번호를 가져옵니다.
+    # 이 부분은 Streamlit Community Cloud의 Secrets에 설정된 값을 사용합니다.
+    correct_password = st.secrets["password"]
 
-# OpenAI API 연결
-client = OpenAI(api_key=st.secrets["openai"]["api_key"])
+    if st.session_state["password_correct"]:
+        return True
 
-# 이전 대화 보여주기
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    # 폼을 사용하여 비밀번호 입력 필드와 버튼을 만듭니다.
+    with st.form("password_form"):
+        password = st.text_input("비밀번호를 입력하세요", type="password")
+        submitted = st.form_submit_button("확인")
 
-# 채팅창
-prompt = st.chat_input("메세지를 입력하세요")
+        if submitted:
+            if password == correct_password:
+                st.session_state["password_correct"] = True
+                st.rerun()  # 비밀번호가 맞으면 앱을 새로고침하여 챗봇을 표시
+            else:
+                st.error("비밀번호가 틀렸습니다.")
+    return False
 
-if prompt:
-    if not st.session_state.authenticated:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        if prompt == PASSWORD:
-            st.session_state.authenticated = True
-            st.session_state.messages.append({"role": "assistant", "content": "✅ 인증 성공! 조하은에게 무엇이든 물어보세요!"})
-        else:
-            st.session_state.messages.append({"role": "assistant", "content": "❌ 비밀번호가 틀렸어요. 다시 입력해 주세요."})
-    else:
+# --- 메인 챗봇 로직 ---
+
+# 비밀번호 확인 함수를 먼저 호출합니다.
+if check_password():
+    st.title("닷컴달콤 연수 챗봇")
+
+    client = OpenAI() # OpenAI API 키는 st.secrets["OPENAI_API_KEY"] 등으로 설정하는 것이 좋습니다.
+
+    if "openai_model" not in st.session_state:
+        st.session_state["openai_model"] = "gpt-4.1"
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    if prompt := st.chat_input("What is up?"):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -45,11 +60,5 @@ if prompt:
                 ],
                 stream=True,
             )
-
-            full_response = ""
-            for chunk in stream:
-                content = chunk.choices[0].delta.get("content", "")
-                full_response += content
-                st.write(content, end="")
-
-        st.session_state.messages.append({"role": "assistant", "content": full_response})
+            response = st.write_stream(stream)
+        st.session_state.messages.append({"role": "assistant", "content": response})
